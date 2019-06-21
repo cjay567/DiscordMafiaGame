@@ -1,0 +1,22 @@
+{
+  "name": "discordmafiagame",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tjpc3/DiscordMafiaGame.git"
+  },
+  "author": "tjpc3",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tjpc3/DiscordMafiaGame/issues"
+  },
+  "homepage": "https://github.com/tjpc3/DiscordMafiaGame#readme",
+  "dependencies": {
+    "discord.js": "github:discordjs/discord.js"
+  }
+}
