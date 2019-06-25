@@ -3,6 +3,7 @@ const client = new Discord.Client();
 
 const path = require('path');
 const fs = require('fs');
+const _ = global._ = require('lodash');
 
 const tokenFile = require(`./config/token.js`);
 
@@ -51,12 +52,39 @@ client.on(`ready`, () => {
   //gamedata.currentsetup = ['M', 'V', 'V', 'V', 'D'];
   gamedata.currentsetup = ['M', 'V'];
 
-  // TODO: Add code to initialize gamedata.townchat, gamedata.mafiachat, and gamedata.doctorchat
+
+  // Finds guild and channels that are needed for the game
+  gamedata.guild = client.guilds.resolve(tokenFile.guildId);
+  if (!gamedata.guild) {
+    console.error("Invalid guild id in token file.");
+    return;
+  }
+
+  gamedata.townchat = guild.channels.find(channel => channel.name === "town-chat");
+  gamedata.mafiachat = guild.channels.find(channel => channel.name === "mafia-chat");
+  gamedata.doctorchat = guild.channels.find(channel => channel.name === "doctor-chat");
+
+  if (!gamedata.townchat) {
+    console.error("Cannot find channel named \"#town-chat\"");
+    return;
+  }
+
+  if (!gamedata.mafiachat) {
+    console.error("Cannot find channel named \"#mafia-chat\"");
+    return;
+  }
+
+  if (!gamedata.doctor) {
+    console.error("Cannot find channel named \"#doctor-chat\"");
+    return;
+  }
+
+  // TODO: Check to make sure the bot can edit the permissions of the channels above before starting the game
 
   initializeEventHanders();
 });
 
-function initializeEventHanders() {
+function initializeEventHanders() { // Don't call this before everything is initialized, it actually starts the bot
   client.on(`message`, async message => {
     if (message.author.bot) { // Ignore all messages from any bots
       return;

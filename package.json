@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/tjpc3/DiscordMafiaGame#readme",
   "dependencies": {
-    "discord.js": "github:discordjs/discord.js"
+    "discord.js": "github:discordjs/discord.js",
+    "lodash": "^4.17.11"
   }
 }
