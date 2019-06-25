@@ -1,4 +1,5 @@
 const playerdataUtil = require(`../util/playerdataUtil.js`);
+const discordUtil = require(`../util/discordUtil.js`);
 
 module.exports.handler = async function(message) {
     
@@ -23,10 +24,10 @@ module.exports.initializer = async function() {
     startMsg += `\`DMing players their roles now.`;
     await gamedata.townchat.send(startMsg);
 
-    // Edit permissions to allow all players to talk in #town-chat
+    // Edit permissions to allow all players to see #town-chat
     let tempPromises = []; // This variable is gonna be used to store promises that are waiting to resolve
     for (player in gamedata.currentplayers) {
-        tempPromises.push(gamedata.townchat.createOverwrite(player.member, {'SEND_MESSAGES': true}));
+        tempPromises.push(gamedata.townchat.createOverwrite(player.member, {'READ_MESSAGES': true}));
     }
     await Promise.all(tempPromises);
 
@@ -40,16 +41,36 @@ module.exports.initializer = async function() {
         gamedata.currentplayers[i].alive = true;
         tempPromises.push(sendPlayerRole(gamedata.currentplayers[i])); // DMs the player their role with custom messages for each role
     }
-    
+    await Promise.all(tempPromises);
 
-    // Allow the doctor to see #doctor-chat and allow the mafia to see #mafia-chat
+    
+    // Allow the doctor to see #doctor-chat 
+    tempPromises = [];
+    for (doctor in playerdataUtil.getPlayersWithRoles('D')) {
+        tempPromises.push(gamedata.doctorchat.createOverwrite(doctor.member, {'READ_MESSAGES': true}));
+    }
+    // Allow the mafia to see #mafia-chat
+    for (mafia in playerdataUtil.getPlayersWithRoles('M')) {
+        tempPromises.push(gamedata.mafiachat.createOverwrite(mafia.member, {'READ_MESSAGES': true}));
+    }
+    await Promise.all(tempPromises);
+
+    // Edit permissions to allow all players to send messages #town-chat
+    await gamedata.townchat.createOverwrite(gamedata.guild.defaultRole, {'SEND_MESSAGES': true}); 
+
     // Message #town-chat that 20 second pregame period has begun
+    await gamedata.townchat.send(`Day 1 of the game will start in 20 seconds. During this time you can leave the game with !leavegame and return all players to the queue, but be warned this might anger some players.`);
+
     // Start timeout and set it to timeoutToStart
+    await new Promise((resolve, reject) => {
+        timeoutToStart = setTimeout(resolve, 20000); // Timeout for 20 seconds
+    });
 
     // When timeout ends move to night 
+    setGameState("night");
 }
 
-let timeoutToStart;
+let timeoutToStart; // Stores the timeout for 20 seconds that
 
 async function startmafiagame (message) {
     await message.channel.send(`A game has already started!`);
@@ -79,6 +100,19 @@ async function leavegame (message) {
     }
 }
 
-async function sendPlayerRole(player) { // Reminder: Make sure to not return a promise with his
-    
+function sendPlayerRole(player) { // Reminder: Make sure to not return a promise with his
+    let message;
+    switch (player.role) {
+        case "M": // Mafia
+            message = "You are a member of the Mafia! Your goal is to kill enough members of the town that they don't have a majority anymore. But be careful, the town can lynch you if they think you're suspicous." 
+            break;
+        case "V": // Villager
+            message = "You are a Villager! Your goal is to lynch every member of the Mafia before they gain a majority." 
+            break;
+        case "D": // Doctor
+            message = "You are a Doctor! Your goal is to lynch every member of the Mafia before they gain a majority. You also have the ability to heal a player each night so that they can't die." 
+            break;
+    }
+
+    return discordUtil.sendDM(player.member.user, message);
 }

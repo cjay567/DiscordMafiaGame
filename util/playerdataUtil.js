@@ -31,3 +31,14 @@ module.exports.clearRoleData = function() {
         };
     }
 }
+
+module.exports.getPlayersWithRoles = function() { // This function accepts multiple parameters, each being a role
+    let players = [];
+    for (player in gamedata.currentplayers) {
+        if (arguments.contains(player.role)) {
+            players.push(player);
+        }
+    }
+    
+    return players;
+}

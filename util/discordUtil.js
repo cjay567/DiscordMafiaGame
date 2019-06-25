@@ -90,7 +90,7 @@ module.exports.sendDM = async function (user, message, options) {
     try {
         await dm.send(message, options);
     } catch (err) {
-        return err;
+        return false;
     }
 
     return true;
