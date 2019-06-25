@@ -4,6 +4,8 @@ const client = new Discord.Client();
 const path = require('path');
 const fs = require('fs');
 
+const tokenFile = require(`./config/token.js`);
+
 /* 
 Possible states:
 1. "nogame" - Game currently not going on, only respond to !startmafiagame
@@ -28,13 +30,14 @@ let gamestates = {};
  * gamedata.currentsetup - Stores current role setup
  * format: ['M', 'V', 'V', 'V', 'D']
  * 
+ * gamedata.guild - Stores the guild the server is using
  * gamedata.townchat - Stores #town-chat channel
  * gamedata.mafiachat - Stores #mafia-chat channel
  * gamedata.doctorchat - Stores #doctor-chat channel
  */
 let gamedata = global.gamedata = {};
 
-function setGameState(gamestate) {
+function setGameState(gamestate) { // Use this function to change the game state
   gamedata.currentstate = gamestate;
 
   gamestates[gamedata.currentstate].initializer && gamestates[gamedata.currentstate].initializer(); // Run the initalizer for that state if there is one
@@ -81,4 +84,4 @@ fs.readdir(directoryPath, function (err, files) { // Load all gamestate files
   });
 });
 
-client.login(require(`./config/token.js`).discordToken);
+client.login(tokenFile.discordToken);
