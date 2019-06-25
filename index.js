@@ -60,9 +60,9 @@ client.on(`ready`, () => {
     return;
   }
 
-  gamedata.townchat = guild.channels.find(channel => channel.name === "town-chat");
-  gamedata.mafiachat = guild.channels.find(channel => channel.name === "mafia-chat");
-  gamedata.doctorchat = guild.channels.find(channel => channel.name === "doctor-chat");
+  gamedata.townchat = gamedata.guild.channels.find(channel => channel.name === "town-chat");
+  gamedata.mafiachat = gamedata.guild.channels.find(channel => channel.name === "mafia-chat");
+  gamedata.doctorchat = gamedata.guild.channels.find(channel => channel.name === "doctor-chat");
 
   if (!gamedata.townchat) {
     console.error("Cannot find channel named \"#town-chat\"");
@@ -74,7 +74,7 @@ client.on(`ready`, () => {
     return;
   }
 
-  if (!gamedata.doctor) {
+  if (!gamedata.doctorchat) {
     console.error("Cannot find channel named \"#doctor-chat\"");
     return;
   }
