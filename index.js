@@ -40,9 +40,10 @@ let gamedata = global.gamedata = {};
 
 function setGameState(gamestate) { // Use this function to change the game state
   gamedata.currentstate = gamestate;
-
+  console.log("State set to: " + gamestate);
   gamestates[gamedata.currentstate].initializer && gamestates[gamedata.currentstate].initializer(); // Run the initalizer for that state if there is one
 }
+global.setGameState = setGameState;
 
 client.on(`ready`, () => {
   console.log(`Logged in as ${client.user.tag}!`);
@@ -50,7 +51,7 @@ client.on(`ready`, () => {
   gamedata.currentstate = "nogame";
   gamedata.currentplayers = [];
   //gamedata.currentsetup = ['M', 'V', 'V', 'V', 'D'];
-  gamedata.currentsetup = ['M', 'V'];
+  gamedata.currentsetup = ['M', 'D'];
 
 
   // Finds guild and channels that are needed for the game
@@ -91,6 +92,10 @@ function initializeEventHanders() { // Don't call this before everything is init
     }
   
     if (message.channel.type === "dm") { // Ignore all DMs
+      return;
+    }
+
+    if (message.guild != gamedata.guild) { // Only accept messages from the assigned guild
       return;
     }
   

@@ -18,16 +18,16 @@ module.exports.handler = async function(message) {
 module.exports.initializer = async function() {
     // Message #town-chat that the game is preparing
     let startMsg = `Game is starting with: `
-    for (player in gamedata.currentplayers) {
-        startMsg += `\n\`` + player.member.displayName + `\``;
+    for (let player of gamedata.currentplayers) {
+        startMsg += `\n${player.member.user}`;
     }
-    startMsg += `\`DMing players their roles now.`;
+    startMsg += `\nPlayers are being DMed their roles now.`;
     await gamedata.townchat.send(startMsg);
 
     // Edit permissions to allow all players to see #town-chat
     let tempPromises = []; // This variable is gonna be used to store promises that are waiting to resolve
-    for (player in gamedata.currentplayers) {
-        tempPromises.push(gamedata.townchat.createOverwrite(player.member, {'READ_MESSAGES': true}));
+    for (let player of gamedata.currentplayers) {
+        tempPromises.push(gamedata.townchat.createOverwrite(player.member, {'VIEW_CHANNEL': true}));
     }
     await Promise.all(tempPromises);
 
@@ -36,7 +36,7 @@ module.exports.initializer = async function() {
     let roleArray = _.clone(gamedata.currentsetup); // Make a clone of the setup as to not change the original
     _.shuffle(roleArray);
     tempPromises = [];
-    for (let i = 0; i < gamedata.currentplayers.length; i++) {
+    for (let i in gamedata.currentplayers) {
         gamedata.currentplayers[i].role = roleArray[i];
         gamedata.currentplayers[i].alive = true;
         tempPromises.push(sendPlayerRole(gamedata.currentplayers[i])); // DMs the player their role with custom messages for each role
@@ -46,25 +46,29 @@ module.exports.initializer = async function() {
     
     // Allow the doctor to see #doctor-chat 
     tempPromises = [];
-    for (doctor in playerdataUtil.getPlayersWithRoles('D')) {
-        tempPromises.push(gamedata.doctorchat.createOverwrite(doctor.member, {'READ_MESSAGES': true}));
+    for (let doctor of playerdataUtil.getPlayersWithRoles('D')) {
+        tempPromises.push(gamedata.doctorchat.createOverwrite(doctor.member, {'VIEW_CHANNEL': true}));
     }
     // Allow the mafia to see #mafia-chat
-    for (mafia in playerdataUtil.getPlayersWithRoles('M')) {
-        tempPromises.push(gamedata.mafiachat.createOverwrite(mafia.member, {'READ_MESSAGES': true}));
+    for (let mafia of playerdataUtil.getPlayersWithRoles('M')) {
+        tempPromises.push(gamedata.mafiachat.createOverwrite(mafia.member, {'VIEW_CHANNEL': true}));
     }
     await Promise.all(tempPromises);
 
     // Edit permissions to allow all players to send messages #town-chat
-    await gamedata.townchat.createOverwrite(gamedata.guild.defaultRole, {'SEND_MESSAGES': true}); 
+    await gamedata.townchat.updateOverwrite(gamedata.guild.defaultRole, {'SEND_MESSAGES': true}); 
 
     // Message #town-chat that 20 second pregame period has begun
-    await gamedata.townchat.send(`Day 1 of the game will start in 20 seconds. During this time you can leave the game with !leavegame and return all players to the queue, but be warned this might anger some players.`);
+    await gamedata.townchat.send(`Night 1 of the game will start in 20 seconds. During this time you can leave the game with !leavegame and return all players to the queue, but be warned this might anger some players.`);
 
     // Start timeout and set it to timeoutToStart
     await new Promise((resolve, reject) => {
         timeoutToStart = setTimeout(resolve, 20000); // Timeout for 20 seconds
     });
+
+    if (gamedata.currentstate !== "pregame") { // Prevents bugs
+        return;
+    }
 
     // When timeout ends move to night 
     setGameState("night");
@@ -90,10 +94,12 @@ async function leavegame (message) {
     }
 
     if (playerdataUtil.removePlayer(message.member)) {
-        setGameState("queue");
         clearTimeout(timeoutToStart);
-        playerdataUtil.clearRoleData();
+        setGameState("queue");
 
+        playerdataUtil.removeChannelPermissionOverwrites(); // Removes all the overwrites that were added
+        playerdataUtil.closeAllChannels(); // Sets send_messages for all channels to false
+        
         message.channel.send(`${message.member.displayName} has left the game. The Game is now cancelled. The queue to join is open again. \`${gamedata.currentplayers.length}/${gamedata.currentsetup.length}\` players.`);
     } else {
         message.channel.send(`You are not in the game!`);
