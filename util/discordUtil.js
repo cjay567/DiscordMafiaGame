@@ -2,9 +2,6 @@
 
 "use strict";
 
-const NodeCache = require( `node-cache` );
-const shardCache = new NodeCache({ stdTTL: 100, checkperiod: 0 });
-
 const memberRegex = /<@!?(\d{17,20})>/;
 const channelRegex = /<#(\d{17,20})>/;
 
