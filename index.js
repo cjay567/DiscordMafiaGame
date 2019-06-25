@@ -27,6 +27,7 @@ let gamestates = {};
  * playerdata.member - Member object of player
  * playerdata.role - Role of player
  * playerdata.alive - alive: true, dead: false
+ * playerdata.vote - Another playerdata object that this person has voted for (If they haven't voted then it's null/undefined and if they have opted for no one then it is set to true)
  * 
  * gamedata.currentsetup - Stores current role setup
  * format: ['M', 'V', 'V', 'V', 'D']
@@ -35,6 +36,8 @@ let gamestates = {};
  * gamedata.townchat - Stores #town-chat channel
  * gamedata.mafiachat - Stores #mafia-chat channel
  * gamedata.doctorchat - Stores #doctor-chat channel
+ * 
+ * gamedata.currentcycle - Stores number that corresponds to the current amount of night/day cycles
  */
 let gamedata = global.gamedata = {};
 
@@ -52,6 +55,7 @@ client.on(`ready`, () => {
   gamedata.currentplayers = [];
   //gamedata.currentsetup = ['M', 'V', 'V', 'V', 'D'];
   gamedata.currentsetup = ['M', 'D'];
+  gamedata.currentcycle = 1;
 
 
   // Finds guild and channels that are needed for the game

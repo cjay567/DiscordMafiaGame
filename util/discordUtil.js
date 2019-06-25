@@ -70,7 +70,6 @@ module.exports.resolveMember = async function(memberResolvable, guild) {
         if (member) {
             return member;
         } else {
-
             return null;
         }
     }

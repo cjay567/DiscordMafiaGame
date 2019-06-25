@@ -49,6 +49,16 @@ module.exports.getPlayersWithRoles = function() { // This function accepts multi
     return players;
 }
 
+module.exports.checkToSeeIfAllPlayersHaveVoted = function(players = gamedata.currentplayers) {
+    for (let player of players) {
+        if (!player.vote) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 module.exports.removeChannelPermissionOverwrites = function() { // Removes all permision overwrites for every channel in the game
     let promises = [];
     
@@ -78,4 +88,23 @@ module.exports.closeAllChannels = function() { // Closes all channels in the gam
         gamedata.mafiachat.updateOverwrite(gamedata.guild.defaultRole, {'SEND_MESSAGES': false}),
         gamedata.doctorchat.updateOverwrite(gamedata.guild.defaultRole, {'SEND_MESSAGES': false})]
     );
+}
+
+module.exports.getPlayerFromMember(member) = function() {
+    for (let player of gamedata.currentplayers) {
+        if (player.member === member) {
+            return player;
+        }
+    }
+
+    return false;
+}
+
+module.exports.decideVote = function(players = gamedata.currentplayers) { // Given an array of players this function will look at the votes of those players and return the majority vote, if there is one
+    let votes = [];
+    for (let player of votes) {
+        votes.push(player.vote);
+    }
+
+    // not done
 }
