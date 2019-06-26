@@ -1,7 +1,5 @@
 const playerdataUtil = require(`../util/playerdataUtil.js`);
 
-// Note: When a player dies give them read access to all channels but not send access
-
 module.exports.handler = async function(message) {
 
     let commands = {
@@ -12,7 +10,7 @@ module.exports.handler = async function(message) {
     };
 
     if (commands[message.content]) {
-        commands[message.content](message);
+        commands[message.content.split(" ")[0]](message); // Gets the word of the message
     }
 }
 
@@ -29,18 +27,31 @@ module.exports.initializer = async function() {
     await gamedata.doctorchat.updateOverwrite(gamedata.guild.defaultRole, {'SEND_MESSAGES': true}); 
 }
 
-function endNight() { // Call when voting ends
+async function endNight() { // Call when voting ends
     // Close #doctor-chat and #mafia-chat
     await playerdataUtil.closeAllChannels();
 
     // Calculate results for the night
-    let healedPlayer = playerdataUtil.getPlayersWithRoles(['D'])[0].vote;
-    let attackedplayer = playerdataUtil.getPlayersWithRoles(['M']) // not done
+    let healedPlayer = (playerdataUtil.getPlayersWithRoles(['D'])[0] || {}).vote; // If the doctor is dead vote will be undefined
+    let attackedplayer = playerdataUtil.decideVote(playerdataUtil.getPlayersWithRoles(['M']));
+    
+    if (attackedplayer) { // If someone was attacked
+        if (attackedplayer === healedPlayer) {
+            // Post message saying they were healed
+            await gamedata.townchat.send(`${attackedplayer} was attacked but they were healed by an unknown Doctor!`);
+        } else {
+            // Post message saying they were killed by Mafia
+            await gamedata.townchat.send(`${attackedplayer} was attacked by the Mafia!`);
+            // Kill them
+            await playerdataUtil.killPlayer(attackedplayer);
+        }
+    }
 
-    // Post message in #town-chat saying what happened
-    // Check for win condition
-    // If win condition met then switch to postgame state
-    // else switch to day state
+    if (gamedata.winner) {
+        setGameState("postgame");
+    } else {
+        setGameState("day");
+    }
 }
 
 async function startmafiagame (message) {
@@ -115,8 +126,23 @@ async function joingame (message) {
 }
 
 async function leavegame (message) {
-    // TODO: Handle a user leaving mid-game
-    // Make it so they have to do "!leavegame yes" or something so they have to make sure
-    // Set the user's "alive" to false
-    // Check for win conditions, if condition met then move to postgame state
+    let player = playerdataUtil.getPlayerFromMember(message.member);
+    if (!player) {
+        await message.channel.send(`You aren't in the game!`);
+    }
+
+    if (!player.alive) {
+        await message.channel.send(`You're not alive! You can step away from the game.`);
+    }
+
+    if (message.content === "!leavegame") {
+        await message.channel.send(`Are you sure? This action cannot be undone. Run \`!leavegame yes\` to leave the game.`);
+    }
+
+    if (message.content !== "!leavegame yes") {
+        return;
+    }
+
+    await gamedata.townchat.send(`${message.member} has left the game!`);
+    await playerdataUtil.killPlayer(message.member);
 }

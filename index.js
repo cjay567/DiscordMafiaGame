@@ -38,6 +38,7 @@ let gamestates = {};
  * gamedata.doctorchat - Stores #doctor-chat channel
  * 
  * gamedata.currentcycle - Stores number that corresponds to the current amount of night/day cycles
+ * gamedata.winner - Stores a string corresponding to what team won the game ("town" for town, "mafia" for mafia)
  */
 let gamedata = global.gamedata = {};
 
@@ -52,6 +53,7 @@ client.on(`ready`, () => {
   console.log(`Logged in as ${client.user.tag}!`);
 
   gamedata.currentstate = "nogame";
+  gamedata.winner = undefined;
   gamedata.currentplayers = [];
   //gamedata.currentsetup = ['M', 'V', 'V', 'V', 'D'];
   gamedata.currentsetup = ['M', 'D'];

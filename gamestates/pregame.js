@@ -27,7 +27,7 @@ module.exports.initializer = async function() {
     // Edit permissions to allow all players to see #town-chat
     let tempPromises = []; // This variable is gonna be used to store promises that are waiting to resolve
     for (let player of gamedata.currentplayers) {
-        tempPromises.push(gamedata.townchat.createOverwrite(player.member, {'VIEW_CHANNEL': true}));
+        tempPromises.push(gamedata.townchat.updateOverwrite(player.member, {'VIEW_CHANNEL': true}));
     }
     await Promise.all(tempPromises);
 
@@ -47,11 +47,11 @@ module.exports.initializer = async function() {
     // Allow the doctor to see #doctor-chat 
     tempPromises = [];
     for (let doctor of playerdataUtil.getPlayersWithRoles('D')) {
-        tempPromises.push(gamedata.doctorchat.createOverwrite(doctor.member, {'VIEW_CHANNEL': true}));
+        tempPromises.push(gamedata.doctorchat.updateOverwrite(doctor.member, {'VIEW_CHANNEL': true}));
     }
     // Allow the mafia to see #mafia-chat
     for (let mafia of playerdataUtil.getPlayersWithRoles('M')) {
-        tempPromises.push(gamedata.mafiachat.createOverwrite(mafia.member, {'VIEW_CHANNEL': true}));
+        tempPromises.push(gamedata.mafiachat.updateOverwrite(mafia.member, {'VIEW_CHANNEL': true}));
     }
     await Promise.all(tempPromises);
 
