@@ -1,7 +1,6 @@
 const playerdataUtil = require(`../util/playerdataUtil.js`);
 
 module.exports.handler = async function(message) {
-
     let commands = {
         "!startmafiagame": startmafiagame, // Called in order to start a game
         "!vote": vote, // Called in order to vote to perform actions
@@ -10,24 +9,46 @@ module.exports.handler = async function(message) {
     };
 
     if (commands[message.content]) {
-        commands[message.content](message);
+        commands[message.content.split(" ")[0]](message); // Gets the fisrt word of the message
     }
 }
 
 module.exports.initializer = async function() {
+    // Clear all votes
+    playerdataUtil.clearAllPlayerVotes();
+
     // Post message in #town-chat saying that it's day
+    gamedata.townchat.send(`Day ${gamedata.currentcycle} has begun! Use !vote to vote on who to lynch. You can use \`!vote {username}\` to vote on a person, or \`!vote none\` to vote for a no-lynch. If you wish to undo your vote, then do \`!vote undo\`.` );
+    
     // Open #town-chat for all players
-    // Send message saying that the town can now vote on who to lynch
+    await gamedata.townchat.updateOverwrite(gamedata.guild.defaultRole, {'SEND_MESSAGES': true});
 }
 
 function endDay() { // Call when voting ends
     // Close #town-chat
+    await gamedata.townchat.updateOverwrite(gamedata.guild.defaultRole, {'SEND_MESSAGES': false});
+
     // Calculate the lynch results
     // Post message in #town-chat saying what happened
-    // Check for win condition
-    // Increment cycle counter
+    let lynchedPlayer = playerdataUtil.decideVote(gamedata.players);
+    if (lynchedPlayer) {
+        await gamedata.townchat.send(`The town has decided to lynch ${lynchedPlayer.member}!`);
+
+        playerdataUtil.killPlayer(lynchedPlayer);
+    } else {
+        await gamedata.townchat.send(`The town has decided to lynch nobody today.`);
+    }
+
     // If win condition met then switch to postgame state
     // else switch to night state
+    if (gamedata.winner) {
+        setGameState("postgame");
+    } else {
+        // Increment cycle counter
+        gamedata.currentcycle++;
+
+        setGameState("night");
+    }
 }
 
 async function startmafiagame (message) {
@@ -35,10 +56,63 @@ async function startmafiagame (message) {
 }
 
 async function vote (message) {
+    if (message.channel != gamedata.townchat) {
+        message.channel.send("Please run this command in #town-chat.");
+        return;
+    }
+
+    let player = playerdataUtil.getPlayerFromMember(message.member);
+    if (!player) {
+        message.channel.send("You're not in the game!");
+        return;
+    }
+
     // Check to make sure player is alive
+    if (!player.alive) {
+        message.channel.send("Dead players cannot vote!");
+        return;
+    }
+
+    let memberResolvable = message.content.substr(message.content.indexOf(' ') + 1); // Cuts off all parts of the string before (inclusive) the first space character
+    let votedPlayer;
+    if (memberResolvable === "none" || memberResolvable === "undo") { 
+        if (memberResolvable === "none") { // Player decides to vote for no action
+            votedPlayer = true;
+            await message.channel.send(`You have voted for no action.`);
+        } else { // Player decides to undo their vote
+            votedPlayer = undefined;
+            await message.channel.send(`You have undone your vote. You will need to make a decision before this phase can end.`);
+        }
+    } else {
+        let votedMember = discordUtil.resolveMember(memberResolvable);
+        if (!votedMember) {
+            message.channel.send("I cannot find that member.");
+            return;
+        }
+
+        let votedPlayer = playerdataUtil.getPlayerFromMember(votedMember);
+        if (!votedPlayer) {
+            message.channel.send("That player is not in the game!");
+            return;
+        }
+
+        // Check to make sure the voted player isnt dead
+        if (!votedPlayer.alive) {
+            message.channel.send("You cannot choose someone who is dead!");
+            return;
+        }
+
+        await message.channel.send(`You have voted for ${votedPlayer.member}.`);
+    }
+   
     // Update player's vote
-    // Check to see if all players that can vote have voted
-    // If they have call endDay()
+    player.vote = votedPlayer;
+
+    // Check to see if all players have voted
+    if (playerdataUtil.checkToSeeIfAllPlayersHaveVoted(gamedata.players)) { 
+        // If they have call endDay()
+        endDay();
+    }
 }
 
 async function joingame (message) {
@@ -46,8 +120,23 @@ async function joingame (message) {
 }
 
 async function leavegame (message) {
-    // TODO: Handle a user leaving mid-game
-    // Make it so they have to do "!leavegame yes" or something so they have to make sure
-    // Set the user's "alive" to false
-    // Check for win conditions, if condition met then move to postgame state
+    let player = playerdataUtil.getPlayerFromMember(message.member);
+    if (!player) {
+        await message.channel.send(`You aren't in the game!`);
+    }
+
+    if (!player.alive) {
+        await message.channel.send(`You're not alive! You can step away from the game.`);
+    }
+
+    if (message.content === "!leavegame") {
+        await message.channel.send(`Are you sure? This action cannot be undone. Run \`!leavegame yes\` to leave the game.`);
+    }
+
+    if (message.content !== "!leavegame yes") {
+        return;
+    }
+
+    await gamedata.townchat.send(`${message.member} has left the game!`);
+    await playerdataUtil.killPlayer(message.member);
 }

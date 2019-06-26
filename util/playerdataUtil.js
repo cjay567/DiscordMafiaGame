@@ -186,3 +186,9 @@ module.exports.checkIfWinConditionMet = function() {
         return;
     }
 }
+
+module.exports.clearAllPlayerVotes = function(players = gamedata.currentplayers) {
+    for (let player of players) {
+        player.vote = undefined;
+    }
+}

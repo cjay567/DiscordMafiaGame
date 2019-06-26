@@ -10,11 +10,14 @@ module.exports.handler = async function(message) {
     };
 
     if (commands[message.content]) {
-        commands[message.content.split(" ")[0]](message); // Gets the word of the message
+        commands[message.content.split(" ")[0]](message); // Gets the fisrt word of the message
     }
 }
 
 module.exports.initializer = async function() {
+    // Clear all votes
+    playerdataUtil.clearAllPlayerVotes();
+
     // Post message saying that it's night phase
     await gamedata.townchat.send(`It is now the beginning of night ${gamedata.currentcycle}, special roles are voting on their actions now.`);
     
@@ -45,6 +48,8 @@ async function endNight() { // Call when voting ends
             // Kill them
             await playerdataUtil.killPlayer(attackedplayer);
         }
+    } else {
+        await gamedata.townchat.send(`Nothing happened during the night. It was boring.`);
     }
 
     if (gamedata.winner) {
@@ -64,15 +69,28 @@ async function vote (message) {
         return;
     }
 
+    let player = playerdataUtil.getPlayerFromMember(message.member);
+    if (!player) {
+        message.channel.send("You're not in the game!");
+        return;
+    }
+
+    // Check to make sure player is alive
+    if (!player.alive) {
+        message.channel.send("Dead players cannot vote!");
+        return;
+    }
+
     let memberResolvable = message.content.substr(message.content.indexOf(' ') + 1); // Cuts off all parts of the string before (inclusive) the first space character
     let votedPlayer;
     if (memberResolvable === "none" || memberResolvable === "undo") { 
         if (memberResolvable === "none") { // Player decides to vote for no action
             votedPlayer = true;
+            await message.channel.send(`You have voted for no action.`);
         } else { // Player decides to undo their vote
             votedPlayer = undefined;
+            await message.channel.send(`You have undone your vote. You will need to make a decision before this phase can end.`);
         }
-
     } else {
         let votedMember = discordUtil.resolveMember(memberResolvable);
         if (!votedMember) {
@@ -97,20 +115,10 @@ async function vote (message) {
             message.channel.send("You cannot choose someone who is dead!");
             return;
         }
+
+        await message.channel.send(`You have voted for ${votedPlayer.member}.`);
     }
    
-    let player = playerdataUtil.getPlayerFromMember(message.member);
-    if (!player) {
-        message.channel.send("You're not in the game!");
-        return;
-    }
-
-    // Check to make sure player is alive
-    if (!player.alive) {
-        message.channel.send("Dead players cannot vote!");
-        return;
-    }
-
     // Update player's vote
     player.vote = votedPlayer;
 
