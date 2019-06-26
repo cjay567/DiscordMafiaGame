@@ -65,7 +65,7 @@ async function startmafiagame (message) {
 
 async function vote (message) {
     if (message.channel != gamedata.townchat) {
-        message.channel.send("Please run this command in #town-chat.");
+        message.channel.send("Please run this command in #town-chat."); //need to change
         return;
     }
 

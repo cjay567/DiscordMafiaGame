@@ -24,7 +24,7 @@ module.exports.initializer = async function() {
     await gamedata.townchat.updateOverwrite(gamedata.guild.defaultRole, {'SEND_MESSAGES': true});
 }
 
-function endDay() { // Call when voting ends
+async function endDay() { // Call when voting ends
     // Close #town-chat
     await gamedata.townchat.updateOverwrite(gamedata.guild.defaultRole, {'SEND_MESSAGES': false});
 
