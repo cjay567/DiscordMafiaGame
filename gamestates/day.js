@@ -35,7 +35,7 @@ async function endDay() { // Call when voting ends
 
     // Calculate the lynch results
     // Post message in #town-chat saying what happened
-    let lynchedPlayer = playerdataUtil.decideVote(gamedata.players);
+    let lynchedPlayer = playerdataUtil.decideVote(playerdataUtil.getPlayersWithRoles(`M`, `V`, `D`)); // Makes sure that dead players don't have to vote
     if (lynchedPlayer) {
         await gamedata.townchat.send(`The town has decided to lynch ${lynchedPlayer.member.user}!`);
 
