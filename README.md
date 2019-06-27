@@ -1,5 +1,5 @@
 # DiscordMafia
-A bot for Discord Hack Week that lets users play the classic party game, Mafia, on your very own Discord Server
+A bot for Discord Hack Week that lets you play the classic party game, Mafia, on your very own Discord Server!
 
 ## Commands
 
