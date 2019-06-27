@@ -24,6 +24,12 @@ module.exports.initializer = async function() {
     startMsg += `\nPlayers are being DMed their roles now.`;
     await gamedata.townchat.send(startMsg);
 
+    let setupMsg = `The roles in play are: `
+    for (let role of gamedata.currentsetup) {
+        setupMsg += `${toLongRoleName(role)}, `
+    }
+    await gamedata.townchat.send(setupMsg);
+
     // Edit permissions to allow all players to see #town-chat
     let tempPromises = []; // This variable is gonna be used to store promises that are waiting to resolve
     for (let player of gamedata.currentplayers) {
@@ -120,4 +126,15 @@ function sendPlayerRole(player) { // Reminder: Make sure to not return a promise
     }
 
     return discordUtil.sendDM(player.member.user, message);
+}
+
+function toLongRoleName(role) {
+    switch(role) {
+        case 'M':
+            return "Mafia";
+        case 'V':
+            return "Villager";
+        case 'D':
+            return "Doctor";
+    }
 }
