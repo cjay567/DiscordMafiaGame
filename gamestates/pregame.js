@@ -62,6 +62,7 @@ module.exports.initializer = async function() {
 
     // Start timeout and set it to timeoutToStart
     await new Promise((resolve, reject) => {
+        timeoutToStart = setTimeout(resolve, 20000); // Timeout for 20 seconds 
     });
 
     if (gamedata.currentstate !== "pregame") { // Prevents bugs
