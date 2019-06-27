@@ -17,36 +17,72 @@ module.exports.handler = async function(message) {
 
 module.exports.initializer = async function() {
     // Lock all chats
-    // Announce game has ended in #town-chat
-    //  await gamedata.townchat.send(`Thank you for playing! The chats will be closed in 20 seconds`);
-    // Declare winner from gamedata.winner in #town-chat
-    // List every player, their role, and whether or not theyre alive
-    // Open mafiachat and doctorchat for all players to view
-    // Announce that all the chats will be closed in 20 seconds
-    // Open #town-chat and let players talk there
-    // Wait for 20 seconds
-    /* 
-        // Start timeout and set it to timeoutToStart
-        await new Promise((resolve, reject) => {
-        timeoutToStart = setTimeout(resolve, 20000); // Timeout for 20 seconds
-        });
+    await playerdataUtil.closeAllChannels();
 
-        if (gamedata.currentstate !== "pregame") { // Prevents bugs
-            return;
+    // Announce game has ended in #town-chat
+    await gamedata.townchat.send(`The game has ended!`);
+
+    // Declare winner from gamedata.winner in #town-chat
+    switch (gamedata.winner) {
+        case "town":
+            await gamedata.townchat.send(`The \`Town\` has won!`);
+            break;
+        case "mafia":
+            await gamedata.townchat.send(`The \`Mafia\` has won!`);
+            break;
+    }
+
+    // List every player, their role, and whether or not theyre alive
+    let playerListMessage = `The player setup:`;
+    for (let player of gamedata.currentplayers) {
+        playerListMessage += `\n${player.member} - ${toLongRoleName(player.role)} - ${player.alive ? `Alive` : `Dead`}`;
+    }
+    await gamedata.townchat.send(playerListMessage);
+
+    // Open mafiachat and doctorchat for all players to view
+    tempPromises = [];
+    for (let player of playerdataUtil.getPlayersWithRoles('M', 'V')) {
+        tempPromises.push(gamedata.doctorchat.updateOverwrite(player.member, {'VIEW_CHANNEL': true}));
+        tempPromises.push(gamedata.mafiachat.updateOverwrite(player.member, {'VIEW_CHANNEL': true}));
+    }
+    await Promise.all(tempPromises);
+
+    // Make it so dead players can speak again in townchat
+    for (let player of gamedata.currentplayers) {
+        if (!player.alive) {
+            tempPromises.push(gamedata.townchat.updateOverwrite(player.member, {'SEND_MESSAGES': true}));
         }
-    */
+    }
+
+    // Announce that all the chats will be closed in 20 seconds
+    await gamedata.townchat.send(`Thank you for playing! The chats will be closed in 20 seconds.`);
+    
+    // Open #town-chat and let players talk there
+    await gamedata.townchat.updateOverwrite(gamedata.guild.defaultRole, {'SEND_MESSAGES': true}); 
+    
+    // Wait for 20 seconds
+    await new Promise((resolve, reject) => {
+        setTimeout(resolve, 20000); // Timeout for 20 seconds
+    });
+    
     // Lock all chats
+    await playerdataUtil.closeAllChannels();
+
     // Post a message in every channel saying that the previous game has ended (This is so different game's messages aren't confused with eachother)
-    /* 
-        gamedata.townchat.send("```PREVIOUS GAME ENDED```");
-        gamedata.mafiachat.send("```PREVIOUS GAME ENDED```");
-        gamedata.doctorchat.send("```PREVIOUS GAME ENDED```");
-    */
+    await gamedata.townchat.send("```PREVIOUS GAME ENDED```");
+    await gamedata.mafiachat.send("```PREVIOUS GAME ENDED```");
+    await gamedata.doctorchat.send("```PREVIOUS GAME ENDED```");
+    
     // Remove every permission overwrite in every channel
+    await playerdataUtil.removeChannelPermissionOverwrites();
+
     // Reset gamedata.currentplayers, gamedata.winner, gamedata.currentcycle
+    gamedata.currentplayers = [];
+    gamedata.winner = undefined;
+    gamedata.currentcycle = 0;
+
     // Switch to state nogame
-    /*     setGameState("nogame") 
-    */
+    setGameState("nogame") 
 }
 
 async function startmafiagame (message) {
@@ -63,4 +99,15 @@ async function joingame (message) {
 
 async function leavegame (message) {
     await message.channel.send(`The game is about to finish, please wait!`);
+}
+
+function toLongRoleName(role) {
+    switch(role) {
+        case 'M':
+            return "Mafia";
+        case 'V':
+            return "Villager";
+        case 'D':
+            return "Doctor";
+    }
 }

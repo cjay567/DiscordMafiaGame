@@ -35,8 +35,8 @@ async function endNight() { // Call when voting ends
     await playerdataUtil.closeAllChannels();
 
     // Calculate results for the night
-    let healedPlayer = (playerdataUtil.getPlayersWithRoles(['D'])[0] || {}).vote; // If the doctor is dead vote will be undefined
-    let attackedplayer = playerdataUtil.decideVote(playerdataUtil.getPlayersWithRoles(['M']));
+    let healedPlayer = (playerdataUtil.getPlayersWithRoles('D')[0] || {}).vote; // If the doctor is dead vote will be undefined
+    let attackedplayer = playerdataUtil.decideVote(playerdataUtil.getPlayersWithRoles('M'));
     
     if (attackedplayer) { // If someone was attacked
         if (attackedplayer === healedPlayer) {
@@ -123,7 +123,7 @@ async function vote (message) {
     player.vote = votedPlayer;
 
     // Check to see if all players that can vote have voted
-    if (playerdataUtil.checkToSeeIfAllPlayersHaveVoted(playerdataUtil.getPlayersWithRoles(['M', 'D']))) { // Only check if Mafia members and the Doctor have voted
+    if (playerdataUtil.checkToSeeIfAllPlayersHaveVoted(playerdataUtil.getPlayersWithRoles('M', 'D'))) { // Only check if Mafia members and the Doctor have voted
         // If they have call endNight()
         endNight();
     }

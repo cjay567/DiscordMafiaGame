@@ -173,7 +173,7 @@ function getDeathRoleMessage(roleShort) { // Used in killPlayer
 }
 
 module.exports.checkIfWinConditionMet = function() {
-    let mafiaCount = getPlayersWithRoles(['M']).length;
+    let mafiaCount = getPlayersWithRoles('M').length;
     if (mafiaCount === 0) { // All mafia dead
         // Town win
         gamedata.winner = "town";
