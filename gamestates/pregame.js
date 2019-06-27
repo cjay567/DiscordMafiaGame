@@ -24,6 +24,7 @@ module.exports.initializer = async function() {
     startMsg += `\nPlayers are being DMed their roles now.`;
     await gamedata.townchat.send(startMsg);
 
+    // List the starting role setup as well so players know what roles are in the game
     let setupMsg = `The roles in play are: `
     for (let role of gamedata.currentsetup) {
         setupMsg += `${toLongRoleName(role)}, `
@@ -53,6 +54,10 @@ module.exports.initializer = async function() {
     tempPromises = [];
     for (let doctor of playerdataUtil.getPlayersWithRoles('D')) {
         tempPromises.push(gamedata.doctorchat.updateOverwrite(doctor.member, {'VIEW_CHANNEL': true}));
+    }
+    // Allow the sheriff to see #sheriff-chat 
+    for (let sheriff of playerdataUtil.getPlayersWithRoles('S')) {
+        tempPromises.push(gamedata.sheriffchat.updateOverwrite(sheriff.member, {'VIEW_CHANNEL': true}));
     }
     // Allow the mafia to see #mafia-chat
     for (let mafia of playerdataUtil.getPlayersWithRoles('M')) {
@@ -121,7 +126,10 @@ function sendPlayerRole(player) { // Reminder: Make sure to not return a promise
             message = "You are a Villager! Your goal is to lynch every member of the Mafia before they gain a majority." 
             break;
         case "D": // Doctor
-            message = "You are a Doctor! Your goal is to lynch every member of the Mafia before they gain a majority. You also have the ability to heal a player each night so that they can't die." 
+            message = "You are the Doctor! Your goal is to lynch every member of the Mafia before they gain a majority. You also have the ability to heal a player each night so that they can't die." 
+            break;
+        case "S": // Sheriff
+            message = "You are the Sheriff! Your goal is to lynch every member of the Mafia before they gain a majority. You're also an investigative genius. Each night you can check to see if a player is a member of the mafia." 
             break;
     }
 
@@ -136,5 +144,7 @@ function toLongRoleName(role) {
             return "Villager";
         case 'D':
             return "Doctor";
+        case 'S':
+            return "Sheriff";
     }
 }

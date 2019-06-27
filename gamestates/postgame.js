@@ -38,11 +38,13 @@ module.exports.initializer = async function() {
     }
     await gamedata.townchat.send(playerListMessage);
 
-    // Open mafiachat and doctorchat for all players to view
+    // Open mafiachat, doctorchat, and deadchat for all players to view
     tempPromises = [];
-    for (let player of playerdataUtil.getPlayersWithRoles('M', 'V')) {
+    for (let player of gamedata.currentplayers) {
         tempPromises.push(gamedata.doctorchat.updateOverwrite(player.member, {'VIEW_CHANNEL': true}));
         tempPromises.push(gamedata.mafiachat.updateOverwrite(player.member, {'VIEW_CHANNEL': true}));
+        tempPromises.push(gamedata.deadchat.updateOverwrite(player.member, {'VIEW_CHANNEL': true}));
+        tempPromises.push(gamedata.sheriffchat.updateOverwrite(player.member, {'VIEW_CHANNEL': true}));
     }
     await Promise.all(tempPromises);
 
@@ -71,7 +73,9 @@ module.exports.initializer = async function() {
     await gamedata.townchat.send("```PREVIOUS GAME ENDED```");
     await gamedata.mafiachat.send("```PREVIOUS GAME ENDED```");
     await gamedata.doctorchat.send("```PREVIOUS GAME ENDED```");
-    
+    await gamedata.sheriffchat.send("```PREVIOUS GAME ENDED```");
+    await gamedata.deadchat.send("```PREVIOUS GAME ENDED```");
+
     // Remove every permission overwrite in every channel
     await playerdataUtil.removeChannelPermissionOverwrites();
 
@@ -81,7 +85,7 @@ module.exports.initializer = async function() {
     gamedata.currentcycle = 1;
 
     // Switch to state nogame
-    setGameState("nogame") 
+    setGameState("nogame");
 }
 
 async function startmafiagame (message) {
@@ -108,5 +112,7 @@ function toLongRoleName(role) {
             return "Villager";
         case 'D':
             return "Doctor";
+        case 'S':
+            return "Sheriff";
     }
 }

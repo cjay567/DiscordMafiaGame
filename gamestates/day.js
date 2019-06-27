@@ -21,9 +21,10 @@ module.exports.initializer = async function() {
     // Post message in #town-chat saying that it's day
     gamedata.townchat.send(`Day ${gamedata.currentcycle} has begun! Use !vote to vote on who to lynch. You can use \`!vote {username}\` to vote on a person, or \`!vote none\` to vote for a no-lynch. If you wish to undo your vote, then do \`!vote undo\`.` );
     
-    // Close #doctor-chat and #mafia-chat
+    // Close #doctor-chat and #mafia-chat and #sheriff-chat
     await gamedata.mafiachat.updateOverwrite(gamedata.guild.defaultRole, {'SEND_MESSAGES': false}); 
     await gamedata.doctorchat.updateOverwrite(gamedata.guild.defaultRole, {'SEND_MESSAGES': false}); 
+    await gamedata.sheriffchat.updateOverwrite(gamedata.guild.defaultRole, {'SEND_MESSAGES': false}); 
 
     // Open #town-chat
     await gamedata.townchat.updateOverwrite(gamedata.guild.defaultRole, {'SEND_MESSAGES': true}); 
@@ -35,7 +36,7 @@ async function endDay() { // Call when voting ends
 
     // Calculate the lynch results
     // Post message in #town-chat saying what happened
-    let lynchedPlayer = playerdataUtil.decideVote(playerdataUtil.getPlayersWithRoles(`M`, `V`, `D`)); // Makes sure that dead players don't have to vote
+    let lynchedPlayer = playerdataUtil.decideVote(playerdataUtil.getAlivePlayers()); // Makes sure that dead players don't have to vote
     if (lynchedPlayer) {
         await gamedata.townchat.send(`The town has decided to lynch ${lynchedPlayer.member.user}!`);
 
@@ -119,7 +120,7 @@ async function vote (message) {
     player.vote = votedPlayer;
 
     // Check to see if all players have voted
-    if (playerdataUtil.checkToSeeIfAllPlayersHaveVoted(gamedata.players)) { 
+    if (playerdataUtil.checkToSeeIfAllPlayersHaveVoted(playerdataUtil.getAlivePlayers())) { 
         // If they have call endDay()
         endDay();
     }

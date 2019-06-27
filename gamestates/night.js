@@ -24,11 +24,17 @@ module.exports.initializer = async function() {
     
     // Send messages in the respective chats about what they can do for the night
     await gamedata.mafiachat.send("Mafia member(s)! It is your goal to elimate all members of the town. Use `!vote {username}` to vote to kill a certain player. If you don't want to kill anyone then you can do `!vote none`. Remember: You cannot vote for other Mafia members and if the majority of the Mafia doesn't agree on one target, then nobody gets attacked during the night.");
-    await gamedata.doctorchat.send("You are the town's doctor! The person you choose to visit at night will be healed. This means that if the Mafia attacks them, they wont be killed. You are allowed to heal yourself if you want.");
+    if (playerdataUtil.getPlayersWithRoles('D')[0] && playerdataUtil.getPlayersWithRoles('D')[0].alive) {
+        await gamedata.doctorchat.send("You are the town's doctor! The person you choose to visit at night will be healed. This means that if the Mafia attacks them, they wont be killed. You are allowed to heal yourself if you want. Use `!vote {username}` to choose to heal a certain player. If you don't want to heals anyone then you can do `!vote none`.");
+    }
+    if (playerdataUtil.getPlayersWithRoles('S')[0] && playerdataUtil.getPlayersWithRoles('S')[0].alive) {
+        await gamedata.sheriffchat.send("You are the town's sheriff! The person you choose to visit at night will be investigated. When the night is over, you will know if they are a mafia member. You are not allowed to investigate yourself. Use `!vote {username}` to choose to investigate a certain player. If you don't want to investigate anyone tonight then you can do `!vote none`.");
+    }
 
-    // Open #doctor-chat and #mafia-chat
+    // Open #doctor-chat and #mafia-chat and #sheriff-chat
     await gamedata.mafiachat.updateOverwrite(gamedata.guild.defaultRole, {'SEND_MESSAGES': true}); 
     await gamedata.doctorchat.updateOverwrite(gamedata.guild.defaultRole, {'SEND_MESSAGES': true}); 
+    await gamedata.sheriffchat.updateOverwrite(gamedata.guild.defaultRole, {'SEND_MESSAGES': true}); 
 
     // Close #town-chat
     await gamedata.townchat.updateOverwrite(gamedata.guild.defaultRole, {'SEND_MESSAGES': false}); 
@@ -39,7 +45,17 @@ async function endNight() { // Call when voting ends
     await playerdataUtil.closeAllChannels();
 
     // Calculate results for the night
-    let healedPlayer = (playerdataUtil.getPlayersWithRoles('D')[0] || {}).vote; // If the doctor is dead vote will be undefined
+    // Post sheriff invesigation results
+    let investigatedPlayer = (playerdataUtil.getPlayersWithRoles('S')[0] || {}).vote; // If the sheriff is dead their vote will be undefined
+    if (investigatedPlayer && investigatedPlayer.member) {
+        if (investigatedPlayer.role === 'M') {
+            await gamedata.sheriffchat.send(`Your investigation has led you to the conclusion that ${investigatedPlayer.member.user} is \`a member of the Mafia!\``);
+        } else {
+            await gamedata.sheriffchat.send(`Your investigation has led you to the conclusion that ${investigatedPlayer.member.user} is \`not a member of the Mafia.\``);
+        }
+    }
+
+    let healedPlayer = (playerdataUtil.getPlayersWithRoles('D')[0] || {}).vote; // If the doctor is dead their vote will be undefined
     let attackedplayer = playerdataUtil.decideVote(playerdataUtil.getPlayersWithRoles('M'));
     
     if (attackedplayer) { // If someone was attacked
@@ -70,8 +86,8 @@ async function startmafiagame (message) {
 }
 
 async function vote (message) {
-    if (message.channel != gamedata.doctorchat && message.channel != gamedata.mafiachat) {
-        message.channel.send("Please run this command in #doctor-chat or #mafia-chat.");
+    if (message.channel != gamedata.doctorchat && message.channel != gamedata.mafiachat && message.channel != gamedata.sheriffchat) {
+        message.channel.send("Please run this command in #doctor-chat, #mafia-chat, or #sheriff-chat.");
         return;
     }
 
@@ -103,31 +119,36 @@ async function vote (message) {
             await message.channel.send(`You have undone your vote. You will need to make a decision before this phase can end.`);
         }
     } else {
-        debugger
         let votedMember = await discordUtil.resolveMember(memberResolvable, message.guild);
         if (!votedMember) {
             message.channel.send("I cannot find that member.");
             return;
         }
-        debugger
+        
         votedPlayer = playerdataUtil.getPlayerFromMember(votedMember);
         if (!votedPlayer) {
             message.channel.send("That player is not in the game!");
             return;
         }
-        debugger
+        
         // Check to make sure Mafia didn't vote for Mafia
         if (player.role === "M" && votedPlayer.role === "M") {
             message.channel.send("You cannot vote for another member of the Mafia!");
             return;
         }
-        debugger
+
+        // Check to make sure Sheriff didn't vote for Sheriff
+        if (player.role === "S" && votedPlayer.role === "S") {
+            message.channel.send("You cannot investigate yourself!");
+            return;
+        }
+        
         // Check to make sure the voted player isnt dead
         if (!votedPlayer.alive) {
             message.channel.send("You cannot choose someone who is dead!");
             return;
         }
-        debugger
+        
         await message.channel.send(`You have voted for ${votedPlayer.member.user}.`);
     }
    
@@ -135,7 +156,7 @@ async function vote (message) {
     player.vote = votedPlayer;
 
     // Check to see if all players that can vote have voted
-    if (playerdataUtil.checkToSeeIfAllPlayersHaveVoted(playerdataUtil.getPlayersWithRoles('M', 'D'))) { // Only check if Mafia members and the Doctor have voted
+    if (playerdataUtil.checkToSeeIfAllPlayersHaveVoted(playerdataUtil.getPlayersWithRoles('M', 'D', 'S'))) { // Only check if Mafia members and the Doctor and the Sheriff have voted
         // If they have call endNight()
         endNight();
     }

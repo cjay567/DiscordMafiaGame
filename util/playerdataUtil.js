@@ -49,6 +49,29 @@ module.exports.getPlayersWithRoles = function() { // This function accepts multi
     return players;
 }
 
+module.exports.getPlayersWithoutRoles = function() { // This function accepts multiple parameters, each being a role (NOTE: WILL NOT INCLUDE DEAD PLAYERS IN RESULTS)
+    let players = [];
+    let roles = Array.from(arguments);
+    for (let player of gamedata.currentplayers) {
+        if (player.alive && !roles.includes(player.role)) {
+            players.push(player);
+        }
+    }
+
+    return players;
+}
+
+module.exports.getAlivePlayers = function() { // Gets all currently alive players
+    let players = [];
+    for (let player of gamedata.currentplayers) {
+        if (player.alive) {
+            players.push(player);
+        }
+    }
+
+    return players;
+}
+
 module.exports.checkToSeeIfAllPlayersHaveVoted = function(players = gamedata.currentplayers) {
     for (let player of players) {
         if (!player.vote) {
@@ -73,7 +96,20 @@ module.exports.removeChannelPermissionOverwrites = function() { // Removes all p
             promises.push(permissionOverwrite.delete());
         }
     }
+    
     for ([snowflake, permissionOverwrite] of gamedata.doctorchat.permissionOverwrites) {
+        if (permissionOverwrite.type === "member") {
+            promises.push(permissionOverwrite.delete());
+        }
+    }
+
+    for ([snowflake, permissionOverwrite] of gamedata.sheriffchat.permissionOverwrites) {
+        if (permissionOverwrite.type === "member") {
+            promises.push(permissionOverwrite.delete());
+        }
+    }
+
+    for ([snowflake, permissionOverwrite] of gamedata.deadchat.permissionOverwrites) {
         if (permissionOverwrite.type === "member") {
             promises.push(permissionOverwrite.delete());
         }
@@ -82,11 +118,12 @@ module.exports.removeChannelPermissionOverwrites = function() { // Removes all p
     return Promise.all(promises);
 }
 
-module.exports.closeAllChannels = function() { // Closes all channels in the game 
+module.exports.closeAllChannels = function() { // Closes all channels in the game except dead-chat
     return Promise.all(
         [gamedata.townchat.updateOverwrite(gamedata.guild.defaultRole, {'SEND_MESSAGES': false}),
         gamedata.mafiachat.updateOverwrite(gamedata.guild.defaultRole, {'SEND_MESSAGES': false}),
-        gamedata.doctorchat.updateOverwrite(gamedata.guild.defaultRole, {'SEND_MESSAGES': false})]
+        gamedata.doctorchat.updateOverwrite(gamedata.guild.defaultRole, {'SEND_MESSAGES': false}),
+        gamedata.sheriffchat.updateOverwrite(gamedata.guild.defaultRole, {'SEND_MESSAGES': false}),]
     );
 }
 
@@ -101,6 +138,10 @@ module.exports.getPlayerFromMember = function(member) {
 }
 
 module.exports.decideVote = function(players = gamedata.currentplayers) { // Given an array of players this function will look at the votes of those players and return the majority vote, if there is one
+    if (players.length === 0) {
+        return false;
+    }
+    
     let votes = [];
     for (let player of players) {
         votes.push(player.vote);
@@ -155,8 +196,11 @@ module.exports.killPlayer = function(player) { // Does what you think it does
         gamedata.townchat.updateOverwrite(player.member, {'VIEW_CHANNEL': true, 'SEND_MESSAGES': false}),
         gamedata.doctorchat.updateOverwrite(player.member, {'VIEW_CHANNEL': true, 'SEND_MESSAGES': false}),
         gamedata.mafiachat.updateOverwrite(player.member, {'VIEW_CHANNEL': true, 'SEND_MESSAGES': false}),
+        gamedata.sheriffchat.updateOverwrite(player.member, {'VIEW_CHANNEL': true, 'SEND_MESSAGES': false}),
 
         gamedata.townchat.send(`${player.member.user} has died! They were ${getDeathRoleMessage(player.role)}`),
+
+        gamedata.deadchat.updateOverwrite(player.member, {'VIEW_CHANNEL': true, 'SEND_MESSAGES': true})
     ]);
 
 }
@@ -169,10 +213,12 @@ function getDeathRoleMessage(roleShort) { // Used in killPlayer
             return " a member of the Mafia!";
         case 'D':
             return " the town Doctor!";
+        case 'S':
+            return " the town Sheriff!";
     }
 }
 
-module.exports.checkIfWinConditionMet = function() { // TODO: Re-enable
+module.exports.checkIfWinConditionMet = function() { // TODO: re-enable
     let mafiaCount = module.exports.getPlayersWithRoles('M').length;
     if (mafiaCount === 0) { // All mafia dead
         // Town win
@@ -180,13 +226,13 @@ module.exports.checkIfWinConditionMet = function() { // TODO: Re-enable
         return;
     }
 
-    if (mafiaCount === module.exports.getPlayersWithRoles('V', 'D')) { // Mafia can no longer be lynched
-        // Mafia win
-        gamedata.winner = "mafia";
-        return;
-    }
+    // if (mafiaCount === module.exports.getPlayersWithoutRoles('M')) { // Mafia can no longer be lynched
+    //     // Mafia win
+    //     gamedata.winner = "mafia";
+    //     return;
+    // }
 
-    // if (0 === module.exports.getPlayersWithRoles('V', 'D').length) { // Only Mafia left
+    // if (0 === module.exports.getPlayersWithoutRoles('M').length) { // Only Mafia left
     //     // Mafia win
     //     gamedata.winner = "mafia";
     //     return;

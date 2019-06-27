@@ -36,6 +36,8 @@ let gamestates = {};
  * gamedata.townchat - Stores #town-chat channel
  * gamedata.mafiachat - Stores #mafia-chat channel
  * gamedata.doctorchat - Stores #doctor-chat channel
+ * gamedata.deadchat - Stores #dead-chat channel
+ * gamedata.sheriffchat - Stores #sheriff-chat channel
  * 
  * gamedata.currentcycle - Stores number that corresponds to the current amount of night/day cycles
  * gamedata.winner - Stores a string corresponding to what team won the game ("town" for town, "mafia" for mafia)
@@ -49,13 +51,13 @@ function setGameState(gamestate) { // Use this function to change the game state
 }
 global.setGameState = setGameState;
 
-client.on(`ready`, () => {
+client.on(`ready`, async () => {
   console.log(`Logged in as ${client.user.tag}!`);
 
   gamedata.winner = undefined;
   gamedata.currentplayers = [];
-  gamedata.currentsetup = ['M', 'V', 'V', 'V', 'D']; // Actual setup
-  // gamedata.currentsetup = ['M', 'D']; // Dev testing setup
+  // gamedata.currentsetup = ['M', 'V', 'V', 'V', 'D']; // Actual setup
+  gamedata.currentsetup = ['M', 'S']; // Dev testing setup
   gamedata.currentcycle = 1;
 
 
@@ -69,25 +71,62 @@ client.on(`ready`, () => {
   gamedata.townchat = gamedata.guild.channels.find(channel => channel.name === "town-chat");
   gamedata.mafiachat = gamedata.guild.channels.find(channel => channel.name === "mafia-chat");
   gamedata.doctorchat = gamedata.guild.channels.find(channel => channel.name === "doctor-chat");
+  gamedata.deadchat = gamedata.guild.channels.find(channel => channel.name === "dead-chat");
+  gamedata.sheriffchat = gamedata.guild.channels.find(channel => channel.name === "sheriff-chat");
 
   if (!gamedata.townchat) {
-    console.error("Cannot find channel named \"#town-chat\"");
-    return;
+    gamedata.townchat = await gamedata.guild.channels.create("town-chat", { permissionOverwrites: [{ id: gamedata.guild.defaultRole, deny: ["VIEW_CHANNEL", "SEND_MESSAGES"], type: "role" }]});
+    if (!gamedata.townchat) {
+      console.error("Cannot create channel named \"#town-chat\"");
+      return;
+    } else {
+      console.log("Created channel \"#town-chat\"");
+    }
   }
 
   if (!gamedata.mafiachat) {
-    console.error("Cannot find channel named \"#mafia-chat\"");
-    return;
+    gamedata.mafiachat = await gamedata.guild.channels.create("mafia-chat", { permissionOverwrites: [{ id: gamedata.guild.defaultRole, deny: ["VIEW_CHANNEL", "SEND_MESSAGES"], type: "role" }]});
+    if (!gamedata.mafiachat) {
+      console.error("Cannot create channel named \"#mafia-chat\"");
+      return;
+    } else {
+      console.log("Created channel \"#mafia-chat\"");
+    }
   }
 
   if (!gamedata.doctorchat) {
-    console.error("Cannot find channel named \"#doctor-chat\"");
-    return;
+    gamedata.doctorchat = await gamedata.guild.channels.create("doctor-chat", { permissionOverwrites: [{ id: gamedata.guild.defaultRole, deny: ["VIEW_CHANNEL", "SEND_MESSAGES"], type: "role" }]});
+    if (!gamedata.doctorchat) {
+      console.error("Cannot create channel named \"#doctor-chat\"");
+      return;
+    } else {
+      console.log("Created channel \"#doctor-chat\"");
+    }
+  }
+
+  if (!gamedata.sheriffchat) {
+    gamedata.sheriffchat = await gamedata.guild.channels.create("sheriff-chat", { permissionOverwrites: [{ id: gamedata.guild.defaultRole, deny: ["VIEW_CHANNEL", "SEND_MESSAGES"], type: "role" }]});
+    if (!gamedata.sheriffchat) {
+      console.error("Cannot create channel named \"#sheriff-chat\"");
+      return;
+    } else {
+      console.log("Created channel \"#sheriff-chat\"");
+    }
+  }
+
+  if (!gamedata.deadchat) {
+    gamedata.deadchat = await gamedata.guild.channels.create("dead-chat", { permissionOverwrites: [{ id: gamedata.guild.defaultRole, allow: ["SEND_MESSAGES"], deny: ["VIEW_CHANNEL"], type: "role" }]});
+    if (!gamedata.deadchat) {
+      console.error("Cannot create channel named \"#dead-chat\"");
+      return;
+    } else {
+      console.log("Created channel \"#dead-chat\"");
+    }
   }
 
   // TODO: Check to make sure the bot can edit the permissions of the channels above before starting the game
 
-  setGameState("nogame")
+  setGameState("nogame");
 
   initializeEventHanders();
 });
