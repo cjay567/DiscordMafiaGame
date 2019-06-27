@@ -52,11 +52,10 @@ global.setGameState = setGameState;
 client.on(`ready`, () => {
   console.log(`Logged in as ${client.user.tag}!`);
 
-  gamedata.currentstate = "nogame";
   gamedata.winner = undefined;
   gamedata.currentplayers = [];
-  //gamedata.currentsetup = ['M', 'V', 'V', 'V', 'D'];
-  gamedata.currentsetup = ['M', 'D'];
+  gamedata.currentsetup = ['M', 'V', 'V', 'V', 'D']; // Actual setup
+  // gamedata.currentsetup = ['M', 'D']; // Dev testing setup
   gamedata.currentcycle = 1;
 
 
@@ -87,6 +86,8 @@ client.on(`ready`, () => {
   }
 
   // TODO: Check to make sure the bot can edit the permissions of the channels above before starting the game
+
+  setGameState("nogame")
 
   initializeEventHanders();
 });

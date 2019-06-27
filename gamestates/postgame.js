@@ -1,5 +1,4 @@
 const playerdataUtil = require(`../util/playerdataUtil.js`);
-const discordUtil = require(`../util/discordUtil.js`);
 
 module.exports.handler = async function(message) {
     
@@ -35,7 +34,7 @@ module.exports.initializer = async function() {
     // List every player, their role, and whether or not theyre alive
     let playerListMessage = `The player setup:`;
     for (let player of gamedata.currentplayers) {
-        playerListMessage += `\n${player.member} - ${toLongRoleName(player.role)} - ${player.alive ? `Alive` : `Dead`}`;
+        playerListMessage += `\n${player.member.user} - ${toLongRoleName(player.role)} - ${player.alive ? `Alive` : `Dead`}`;
     }
     await gamedata.townchat.send(playerListMessage);
 
@@ -79,7 +78,7 @@ module.exports.initializer = async function() {
     // Reset gamedata.currentplayers, gamedata.winner, gamedata.currentcycle
     gamedata.currentplayers = [];
     gamedata.winner = undefined;
-    gamedata.currentcycle = 0;
+    gamedata.currentcycle = 1;
 
     // Switch to state nogame
     setGameState("nogame") 

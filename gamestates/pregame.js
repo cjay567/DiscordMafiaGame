@@ -33,8 +33,7 @@ module.exports.initializer = async function() {
 
     // Assign players their roles and DM them their roles
     // Set every player to be alive
-    let roleArray = _.clone(gamedata.currentsetup); // Make a clone of the setup as to not change the original
-    _.shuffle(roleArray);
+    let roleArray = _.shuffle(gamedata.currentsetup); // Makes a shuffled clone of the setup as to not change the original
     tempPromises = [];
     for (let i in gamedata.currentplayers) {
         gamedata.currentplayers[i].role = roleArray[i];
@@ -63,7 +62,6 @@ module.exports.initializer = async function() {
 
     // Start timeout and set it to timeoutToStart
     await new Promise((resolve, reject) => {
-        timeoutToStart = setTimeout(resolve, 20000); // Timeout for 20 seconds
     });
 
     if (gamedata.currentstate !== "pregame") { // Prevents bugs
@@ -100,7 +98,7 @@ async function leavegame (message) {
         playerdataUtil.removeChannelPermissionOverwrites(); // Removes all the overwrites that were added
         playerdataUtil.closeAllChannels(); // Sets send_messages for all channels to false
         
-        message.channel.send(`${message.member.displayName} has left the game. The Game is now cancelled. The queue to join is open again. \`${gamedata.currentplayers.length}/${gamedata.currentsetup.length}\` players.`);
+        message.channel.send(`${message.member.user} has left the game. The Game is now cancelled. The queue to join is open again. \`${gamedata.currentplayers.length}/${gamedata.currentsetup.length}\` players.`);
     } else {
         message.channel.send(`You are not in the game!`);
     }

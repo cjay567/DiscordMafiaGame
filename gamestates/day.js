@@ -1,4 +1,5 @@
 const playerdataUtil = require(`../util/playerdataUtil.js`);
+const discordUtil = require(`../util/discordUtil.js`);
 
 module.exports.handler = async function(message) {
     let commands = {
@@ -8,7 +9,7 @@ module.exports.handler = async function(message) {
         "!leavegame": leavegame // Called when a player wants to leave a game
     };
 
-    if (commands[message.content]) {
+    if (commands[message.content.split(" ")[0]]) {
         commands[message.content.split(" ")[0]](message); // Gets the fisrt word of the message
     }
 }
@@ -20,8 +21,12 @@ module.exports.initializer = async function() {
     // Post message in #town-chat saying that it's day
     gamedata.townchat.send(`Day ${gamedata.currentcycle} has begun! Use !vote to vote on who to lynch. You can use \`!vote {username}\` to vote on a person, or \`!vote none\` to vote for a no-lynch. If you wish to undo your vote, then do \`!vote undo\`.` );
     
-    // Open #town-chat for all players
-    await gamedata.townchat.updateOverwrite(gamedata.guild.defaultRole, {'SEND_MESSAGES': true});
+    // Close #doctor-chat and #mafia-chat
+    await gamedata.mafiachat.updateOverwrite(gamedata.guild.defaultRole, {'SEND_MESSAGES': false}); 
+    await gamedata.doctorchat.updateOverwrite(gamedata.guild.defaultRole, {'SEND_MESSAGES': false}); 
+
+    // Open #town-chat
+    await gamedata.townchat.updateOverwrite(gamedata.guild.defaultRole, {'SEND_MESSAGES': true}); 
 }
 
 async function endDay() { // Call when voting ends
@@ -32,7 +37,7 @@ async function endDay() { // Call when voting ends
     // Post message in #town-chat saying what happened
     let lynchedPlayer = playerdataUtil.decideVote(gamedata.players);
     if (lynchedPlayer) {
-        await gamedata.townchat.send(`The town has decided to lynch ${lynchedPlayer.member}!`);
+        await gamedata.townchat.send(`The town has decided to lynch ${lynchedPlayer.member.user}!`);
 
         playerdataUtil.killPlayer(lynchedPlayer);
     } else {
@@ -73,6 +78,11 @@ async function vote (message) {
         return;
     }
 
+    if (message.content.indexOf(' ') === -1) { // They just typed in "!vote"
+        message.channel.send("Usage: `!vote {username}`.");
+        return;
+    }
+
     let memberResolvable = message.content.substr(message.content.indexOf(' ') + 1); // Cuts off all parts of the string before (inclusive) the first space character
     let votedPlayer;
     if (memberResolvable === "none" || memberResolvable === "undo") { 
@@ -84,13 +94,13 @@ async function vote (message) {
             await message.channel.send(`You have undone your vote. You will need to make a decision before this phase can end.`);
         }
     } else {
-        let votedMember = discordUtil.resolveMember(memberResolvable);
+        let votedMember = await discordUtil.resolveMember(memberResolvable, message.guild);
         if (!votedMember) {
             message.channel.send("I cannot find that member.");
             return;
         }
 
-        let votedPlayer = playerdataUtil.getPlayerFromMember(votedMember);
+        votedPlayer = playerdataUtil.getPlayerFromMember(votedMember);
         if (!votedPlayer) {
             message.channel.send("That player is not in the game!");
             return;
@@ -102,7 +112,7 @@ async function vote (message) {
             return;
         }
 
-        await message.channel.send(`You have voted for ${votedPlayer.member}.`);
+        await message.channel.send(`You have voted for ${votedPlayer.member.user}.`);
     }
    
     // Update player's vote
@@ -137,6 +147,6 @@ async function leavegame (message) {
         return;
     }
 
-    await gamedata.townchat.send(`${message.member} has left the game!`);
+    await gamedata.townchat.send(`${message.member.user} has left the game!`);
     await playerdataUtil.killPlayer(message.member);
 }

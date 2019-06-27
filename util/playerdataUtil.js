@@ -90,7 +90,7 @@ module.exports.closeAllChannels = function() { // Closes all channels in the gam
     );
 }
 
-module.exports.getPlayerFromMember(member) = function() {
+module.exports.getPlayerFromMember = function(member) {
     for (let player of gamedata.currentplayers) {
         if (player.member === member) {
             return player;
@@ -125,7 +125,7 @@ module.exports.decideVote = function(players = gamedata.currentplayers) { // Giv
     }
 
     let highestCount = -1;
-    for (let count of highestCount) {
+    for (let count of uniqueVotesCount) {
         if (count > highestCount) {
             highestCount = count;
         }
@@ -137,7 +137,7 @@ module.exports.decideVote = function(players = gamedata.currentplayers) { // Giv
     }
 
     let decidedVote = uniqueVotes[uniqueVotesCount.indexOf(highestCount)];
-    if (!decidedVote && !decidedVote.member) {
+    if (!decidedVote || !decidedVote.member) {
         // A no-target occured
         return false;
     }
@@ -156,7 +156,7 @@ module.exports.killPlayer = function(player) { // Does what you think it does
         gamedata.doctorchat.updateOverwrite(player.member, {'VIEW_CHANNEL': true, 'SEND_MESSAGES': false}),
         gamedata.mafiachat.updateOverwrite(player.member, {'VIEW_CHANNEL': true, 'SEND_MESSAGES': false}),
 
-        gamedata.townchat.send(`${player.member} has died! They were ${getDeathRoleMessage(player.role)}`),
+        gamedata.townchat.send(`${player.member.user} has died! They were ${getDeathRoleMessage(player.role)}`),
     ]);
 
 }
@@ -172,19 +172,25 @@ function getDeathRoleMessage(roleShort) { // Used in killPlayer
     }
 }
 
-module.exports.checkIfWinConditionMet = function() {
-    let mafiaCount = getPlayersWithRoles('M').length;
+module.exports.checkIfWinConditionMet = function() { // TODO: Re-enable
+    let mafiaCount = module.exports.getPlayersWithRoles('M').length;
     if (mafiaCount === 0) { // All mafia dead
         // Town win
         gamedata.winner = "town";
         return;
     }
 
-    if (mafiaCount >= (gamedata.players.length - mafiaCount)) { // Mafia can no longer be lynched
+    if (mafiaCount === module.exports.getPlayersWithRoles('V', 'D')) { // Mafia can no longer be lynched
         // Mafia win
         gamedata.winner = "mafia";
         return;
     }
+
+    // if (0 === module.exports.getPlayersWithRoles('V', 'D').length) { // Only Mafia left
+    //     // Mafia win
+    //     gamedata.winner = "mafia";
+    //     return;
+    // }
 }
 
 module.exports.clearAllPlayerVotes = function(players = gamedata.currentplayers) {

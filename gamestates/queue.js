@@ -28,7 +28,7 @@ async function joingame (message) {
     }
 
     if (playerdataUtil.addPlayer(message.member)) {
-        message.channel.send(`${message.member.displayName} has joined the queue. Leave the queue with !leavegame \`${gamedata.currentplayers.length}/${gamedata.currentsetup.length}\` players.`);
+        message.channel.send(`${message.member.user} has joined the queue. Leave the queue with !leavegame \`${gamedata.currentplayers.length}/${gamedata.currentsetup.length}\` players.`);
     } else {
         message.channel.send(`You are already in the queue! Leave with !leavegame`);
     }
@@ -38,7 +38,7 @@ async function joingame (message) {
 
 async function leavegame (message) {
     if (playerdataUtil.removePlayer(message.member)) {
-        message.channel.send(`${message.member.displayName} has left the queue. Join the queue with !joingame \`${gamedata.currentplayers.length}/${gamedata.currentsetup.length}\` players.`);
+        message.channel.send(`${message.member.user} has left the queue. Join the queue with !joingame \`${gamedata.currentplayers.length}/${gamedata.currentsetup.length}\` players.`);
     } else {
         message.channel.send(`You are not in the queue! Join with !joingame`);
     }

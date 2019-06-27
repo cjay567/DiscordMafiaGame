@@ -14,6 +14,12 @@ module.exports.handler = async function(message) {
     }
 }
 
+module.exports.initializer = async function(message) {
+    
+    await playerdataUtil.closeAllChannels();
+    await playerdataUtil.removeChannelPermissionOverwrites();
+}
+
 async function startmafiagame (message) {
     if (playerdataUtil.addPlayer(message.member)) {
         setGameState("queue"); // Begin queueing up players

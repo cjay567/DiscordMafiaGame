@@ -1,4 +1,5 @@
 const playerdataUtil = require(`../util/playerdataUtil.js`);
+const discordUtil = require(`../util/discordUtil.js`);
 
 module.exports.handler = async function(message) {
 
@@ -9,7 +10,7 @@ module.exports.handler = async function(message) {
         "!leavegame": leavegame // Called when a player wants to leave a game
     };
 
-    if (commands[message.content]) {
+    if (commands[message.content.split(" ")[0]]) {
         commands[message.content.split(" ")[0]](message); // Gets the fisrt word of the message
     }
 }
@@ -28,6 +29,9 @@ module.exports.initializer = async function() {
     // Open #doctor-chat and #mafia-chat
     await gamedata.mafiachat.updateOverwrite(gamedata.guild.defaultRole, {'SEND_MESSAGES': true}); 
     await gamedata.doctorchat.updateOverwrite(gamedata.guild.defaultRole, {'SEND_MESSAGES': true}); 
+
+    // Close #town-chat
+    await gamedata.townchat.updateOverwrite(gamedata.guild.defaultRole, {'SEND_MESSAGES': false}); 
 }
 
 async function endNight() { // Call when voting ends
@@ -41,16 +45,18 @@ async function endNight() { // Call when voting ends
     if (attackedplayer) { // If someone was attacked
         if (attackedplayer === healedPlayer) {
             // Post message saying they were healed
-            await gamedata.townchat.send(`${attackedplayer} was attacked but they were healed by an unknown Doctor!`);
+            await gamedata.townchat.send(`During the night, ${attackedplayer.member.user} was attacked but they were healed by an unknown Doctor!`);
         } else {
             // Post message saying they were killed by Mafia
-            await gamedata.townchat.send(`${attackedplayer} was attacked by the Mafia!`);
+            await gamedata.townchat.send(`During the night, ${attackedplayer.member.user} was attacked by the Mafia!`);
             // Kill them
             await playerdataUtil.killPlayer(attackedplayer);
         }
     } else {
         await gamedata.townchat.send(`Nothing happened during the night. It was boring.`);
     }
+
+    await gamedata.townchat.send(`The night is over.`);
 
     if (gamedata.winner) {
         setGameState("postgame");
@@ -64,8 +70,8 @@ async function startmafiagame (message) {
 }
 
 async function vote (message) {
-    if (message.channel != gamedata.townchat) {
-        message.channel.send("Please run this command in #town-chat."); //need to change
+    if (message.channel != gamedata.doctorchat && message.channel != gamedata.mafiachat) {
+        message.channel.send("Please run this command in #doctor-chat or #mafia-chat.");
         return;
     }
 
@@ -81,6 +87,11 @@ async function vote (message) {
         return;
     }
 
+    if (message.content.indexOf(' ') === -1) { // They just typed in "!vote"
+        message.channel.send("Usage: `!vote {username}`.");
+        return;
+    }
+
     let memberResolvable = message.content.substr(message.content.indexOf(' ') + 1); // Cuts off all parts of the string before (inclusive) the first space character
     let votedPlayer;
     if (memberResolvable === "none" || memberResolvable === "undo") { 
@@ -92,31 +103,32 @@ async function vote (message) {
             await message.channel.send(`You have undone your vote. You will need to make a decision before this phase can end.`);
         }
     } else {
-        let votedMember = discordUtil.resolveMember(memberResolvable);
+        debugger
+        let votedMember = await discordUtil.resolveMember(memberResolvable, message.guild);
         if (!votedMember) {
             message.channel.send("I cannot find that member.");
             return;
         }
-
-        let votedPlayer = playerdataUtil.getPlayerFromMember(votedMember);
+        debugger
+        votedPlayer = playerdataUtil.getPlayerFromMember(votedMember);
         if (!votedPlayer) {
             message.channel.send("That player is not in the game!");
             return;
         }
-
+        debugger
         // Check to make sure Mafia didn't vote for Mafia
         if (player.role === "M" && votedPlayer.role === "M") {
             message.channel.send("You cannot vote for another member of the Mafia!");
             return;
         }
-
+        debugger
         // Check to make sure the voted player isnt dead
         if (!votedPlayer.alive) {
             message.channel.send("You cannot choose someone who is dead!");
             return;
         }
-
-        await message.channel.send(`You have voted for ${votedPlayer.member}.`);
+        debugger
+        await message.channel.send(`You have voted for ${votedPlayer.member.user}.`);
     }
    
     // Update player's vote
@@ -151,6 +163,6 @@ async function leavegame (message) {
         return;
     }
 
-    await gamedata.townchat.send(`${message.member} has left the game!`);
+    await gamedata.townchat.send(`${message.member.user} has left the game!`);
     await playerdataUtil.killPlayer(message.member);
 }
