@@ -34,6 +34,7 @@ A bot for Discord Hack Week that lets you play the classic party game, Mafia, on
 
 ## Setup
 Once you've downloaded the repo, you'll need a client ID and a guild (server) ID to run this bot on your own server (Ensure you have Developer Mode turned on in your settings!)
+You also would need the latest version of [node.js](https://nodejs.org/en/) installed.
 These are required for the [token.js](https://github.com/tjpc3/DiscordMafiaGame/blob/master/config/token.js) file in the config folder.
  
 ### Steps to get your guild ID
