@@ -55,11 +55,15 @@ module.exports.initializer = async function() {
         }
     }
 
+    // Announce that all the chats will be closed in 40 seconds
+    await gamedata.townchat.send(`Thank you for playing! The chats will be closed in 40 seconds.`);
     
     // Open #town-chat and let players talk there
     await gamedata.townchat.updateOverwrite(gamedata.guild.defaultRole, {'SEND_MESSAGES': true}); 
     
+    // Wait for 40 seconds
     await new Promise((resolve, reject) => {
+        setTimeout(resolve, 40000); // Timeout for 40 seconds
     });
     
     // Lock all chats
