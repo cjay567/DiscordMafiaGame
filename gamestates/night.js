@@ -49,9 +49,9 @@ async function endNight() { // Call when voting ends
     let investigatedPlayer = (playerdataUtil.getPlayersWithRoles('S')[0] || {}).vote; // If the sheriff is dead their vote will be undefined
     if (investigatedPlayer && investigatedPlayer.member) {
         if (investigatedPlayer.role === 'M') {
-            await gamedata.sheriffchat.send(`Your investigation has led you to the conclusion that ${investigatedPlayer.member.user} is \`a member of the Mafia!\``);
+            await gamedata.sheriffchat.send(`Your investigation has led you to the conclusion that ${investigatedPlayer.member.user} \`__**is**__ a member of the Mafia!\``);
         } else {
-            await gamedata.sheriffchat.send(`Your investigation has led you to the conclusion that ${investigatedPlayer.member.user} is \`not a member of the Mafia.\``);
+            await gamedata.sheriffchat.send(`Your investigation has led you to the conclusion that ${investigatedPlayer.member.user} \`is __**not**__ a member of the Mafia.\``);
         }
     }
 
