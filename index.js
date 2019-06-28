@@ -56,7 +56,8 @@ client.on(`ready`, async () => {
 
   gamedata.winner = undefined;
   gamedata.currentplayers = [];
-  gamedata.currentsetup = ['M', 'S', 'V', 'V', 'D']; // Actual setup
+  // gamedata.currentsetup = ['M', 'S', 'V', 'V', 'D']; // Actual setup
+  gamedata.currentsetup = ['M', 'M', 'D', 'S', 'V', 'V', 'V']; // Actual setup
   // gamedata.currentsetup = ['M', 'S']; // Dev testing setup
   gamedata.currentcycle = 1;
 

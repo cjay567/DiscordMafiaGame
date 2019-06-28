@@ -9,8 +9,8 @@ module.exports.handler = async function(message) {
         "!leavegame": leavegame // Called when a player wants to leave a game
     };
 
-    if (commands[message.content]) {
-        commands[message.content](message);
+    if (commands[message.content.split(" ")[0]]) {
+        commands[message.content.split(" ")[0]](message); // Gets the fisrt word of the message
     }
 }
 
@@ -43,10 +43,10 @@ async function leavegame (message) {
         message.channel.send(`You are not in the queue! Join with !joingame`);
     }
 
-    checkIfStateFinished();
+    checkIfStateFinished(message);
 }
 
-async function checkIfStateFinished() { // Checks to see if the queue state is done
+async function checkIfStateFinished(message) { // Checks to see if the queue state is done
     if (gamedata.currentplayers.length === gamedata.currentsetup.length) {
         setGameState(`pregame`); // Start game
     } 

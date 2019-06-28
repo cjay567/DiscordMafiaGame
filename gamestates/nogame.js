@@ -9,8 +9,8 @@ module.exports.handler = async function(message) {
         "!leavegame": leavegame // Called when a player wants to leave a game
     };
 
-    if (commands[message.content]) {
-        commands[message.content](message);
+    if (commands[message.content.split(" ")[0]]) {
+        commands[message.content.split(" ")[0]](message); // Gets the fisrt word of the message
     }
 }
 
@@ -20,7 +20,32 @@ module.exports.initializer = async function(message) {
 
 async function startmafiagame (message) {
     if (playerdataUtil.addPlayer(message.member)) {
+        gamedata.currentsetup = ['M', 'S', 'D', 'V', 'V'];
+        if (message.content.indexOf(' ') !== -1) { // They didn't just type in "!startmafiagame"
+            switch (message.content.substr(message.content.indexOf(' ') + 1)) { // Gets the second parameter
+                case "5":
+                    gamedata.currentsetup = ['M', 'S', 'D', 'V', 'V'];
+                    break;
+                case "6":
+                    gamedata.currentsetup = ['M', 'S', 'D', 'V', 'V', 'V'];
+                    break;
+                case "7":
+                    gamedata.currentsetup = ['M', 'M', 'S', 'D', 'V', 'V', 'V'];
+                    break;
+                case "8":
+                    gamedata.currentsetup = ['M', 'M', 'S', 'D', 'V', 'V', 'V', 'V'];
+                    break;
+                case "9":
+                    gamedata.currentsetup = ['M', 'M', 'M', 'S', 'D', 'V', 'V', 'V', 'V'];
+                    break;
+                case "10":
+                    gamedata.currentsetup = ['M', 'M', 'M', 'S', 'D', 'V', 'V', 'V', 'V', 'V'];
+                    break;
+            }
+        }
+
         setGameState("queue"); // Begin queueing up players
+        console.log(gamedata.currentsetup);
         
         message.channel.send(`Game queue started! \`${gamedata.currentplayers.length}/${gamedata.currentsetup.length}\` players.`);
     } else {

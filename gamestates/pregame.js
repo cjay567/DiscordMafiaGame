@@ -10,8 +10,8 @@ module.exports.handler = async function(message) {
         "!leavegame": leavegame // Called when a player wants to leave a game
     };
 
-    if (commands[message.content]) {
-        commands[message.content](message);
+    if (commands[message.content.split(" ")[0]]) {
+        commands[message.content.split(" ")[0]](message); // Gets the fisrt word of the message
     }
 }
 
