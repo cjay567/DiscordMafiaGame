@@ -23,6 +23,9 @@ async function startmafiagame (message) {
         gamedata.currentsetup = ['M', 'S', 'D', 'V', 'V'];
         if (message.content.indexOf(' ') !== -1) { // They didn't just type in "!startmafiagame"
             switch (message.content.substr(message.content.indexOf(' ') + 1)) { // Gets the second parameter
+                case "4":
+                    gamedata.currentsetup = ['M', 'S', 'D', 'V'];
+                    break;
                 case "5":
                     gamedata.currentsetup = ['M', 'S', 'D', 'V', 'V'];
                     break;
