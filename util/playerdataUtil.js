@@ -226,7 +226,7 @@ module.exports.checkIfWinConditionMet = function() {
         return;
     }
 
-    if (mafiaCount === module.exports.getPlayersWithoutRoles('M')) { // Mafia can no longer be lynched
+    if (mafiaCount === module.exports.getPlayersWithoutRoles('M').length) { // Mafia can no longer be lynched
         // Mafia win
         gamedata.winner = "mafia";
         return;
