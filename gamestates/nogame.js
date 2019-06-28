@@ -48,7 +48,6 @@ async function startmafiagame (message) {
         }
 
         setGameState("queue"); // Begin queueing up players
-        console.log(gamedata.currentsetup);
         
         message.channel.send(`Game queue started! \`${gamedata.currentplayers.length}/${gamedata.currentsetup.length}\` players.`);
     } else {
