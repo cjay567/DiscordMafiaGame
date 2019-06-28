@@ -30,3 +30,8 @@ A bot for Discord Hack Week that lets you play the classic party game, Mafia, on
     - Chooses one person to kill every night.
     - Wins when the mafia outnumber the village.
     - Sided with the mafia.
+
+- Sheriff:
+    - Visits one person every night.
+    - Receives a report with that person's alignment.
+    - Sided with the village.
