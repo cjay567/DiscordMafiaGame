@@ -218,7 +218,7 @@ function getDeathRoleMessage(roleShort) { // Used in killPlayer
     }
 }
 
-module.exports.checkIfWinConditionMet = function() { // TODO: re-enable
+module.exports.checkIfWinConditionMet = function() {
     let mafiaCount = module.exports.getPlayersWithRoles('M').length;
     if (mafiaCount === 0) { // All mafia dead
         // Town win
@@ -226,11 +226,11 @@ module.exports.checkIfWinConditionMet = function() { // TODO: re-enable
         return;
     }
 
-    // if (mafiaCount === module.exports.getPlayersWithoutRoles('M')) { // Mafia can no longer be lynched
-    //     // Mafia win
-    //     gamedata.winner = "mafia";
-    //     return;
-    // }
+    if (mafiaCount === module.exports.getPlayersWithoutRoles('M')) { // Mafia can no longer be lynched
+        // Mafia win
+        gamedata.winner = "mafia";
+        return;
+    }
 
     // if (0 === module.exports.getPlayersWithoutRoles('M').length) { // Only Mafia left
     //     // Mafia win
