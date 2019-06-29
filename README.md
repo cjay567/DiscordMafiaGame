@@ -1,12 +1,13 @@
 # DiscordMafia
 A bot for Discord Hack Week that lets you play the classic party game, Mafia, on your very own Discord Server!
+Created by tjpc3 and StreaK.
 
 ## Commands
-- !startmafiagame: Start a new game of Mafia.
+- !startmafiagame {amount}: Start a new game of Mafia with the specified amount of players (defaults to 5).
 
 - !joingame: Join an existing game.
 
-- !vote: Vote (or target) another player.
+- !vote {username}: Vote (or target) another player (Used in-game).
 
 - !leavegame: Leave a game that's currently running.
 
@@ -22,7 +23,7 @@ A bot for Discord Hack Week that lets you play the classic party game, Mafia, on
 
 - Mafia:
     - Chooses one person to kill every night.
-    - Wins when the mafia outnumber the village.
+    - Wins when the mafia can no longer be lynched.
     - Sided with the mafia.
 
 - Sheriff:
@@ -54,11 +55,14 @@ You also would need the latest version of [node.js](https://nodejs.org/en/) inst
 2. Copy your token from the Bot tab on your application to the [config/token.js](https://github.com/tjpc3/DiscordMafiaGame/blob/master/config/token.js)
  file and save.
 
-3. Use this link ```https://discordapp.com/oauth2/authorize?client_id=CLIENT-ID-HERE8&scope=bot```, replacing CLIENT-ID-HERE with your bot's client ID, and copy/paste it in your browser. You'll arrive at a page similar to this:
+3. Use this link ```https://discordapp.com/oauth2/authorize?client_id=CLIENT-ID-HERE8&scope=bot&permissions=68624```, replacing CLIENT-ID-HERE with your bot's client ID, and copy/paste it in your browser. You'll arrive at a page similar to this:
 
 ![](https://discordjs.guide/assets/img/A8l70bj.3d267a22.png)
 
 4. Select your server from the dropdown menu and click "Authorize".
 
-And that's it! To start the bot, navigate in your terminal to the location where you downloaded the repo and type "run".
+### Steps to setup the bot once it's on your server
+1. Edit the permissions of the role named after the bot in your server settings. Make sure the "Manage Channels" permission is ON.
+
+And that's it! To start the bot, navigate in your terminal to the location where you downloaded the repo and type "run". The bot will automatically create all the channels it needs in order to play a game of Mafia.
 
