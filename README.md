@@ -3,7 +3,7 @@ A bot for Discord Hack Week that lets you play the classic party game, Mafia, on
 Created by tjpc3 and StreaK.
 
 ## Commands
-- !startmafiagame {amount}: Start a new game of Mafia with the specified amount of players (defaults to 5).
+- !startmafiagame {number 4-10}: Start a new game of Mafia with the specified amount of players (defaults to 5, minimum is 4, maximum is 10).
 
 - !joingame: Join an existing game.
 
